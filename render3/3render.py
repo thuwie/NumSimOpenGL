@@ -1,7 +1,7 @@
 from vispy import app
 from vispy import gloo
 
-from util.surface import Surface
+from render3.surface import Surface
 
 vert = ("""
 attribute vec2 dot_position;

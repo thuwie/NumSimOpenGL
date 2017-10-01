@@ -2,6 +2,8 @@ import numpy as np
 from vispy import gloo
 from vispy import app
 
+from render2.surface import Surface
+
 vert = ("""
 attribute vec2 dot_position;
 attribute float dot_height;
@@ -19,12 +21,12 @@ void main(){
 
 
 class Window(app.Canvas):
-    def __init__(self):
+    def __init__(self, surface):
         app.Canvas.__init__(self, size=(400, 400), title='Render suface')
         gloo.set_state(clear_color=(0, 0, 0, 1), depth_test=False, blend=False)
         self.program = gloo.Program(vert, frag)
 
-        self.surface = Surface()
+        self.surface = surface
         self.program["dot_position"] = self.surface.position()
         self.time = 0
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
@@ -76,5 +78,5 @@ class Surface(object):
 
 
 if __name__ == '__main__':
-    appWindow = Window()
+    appWindow = Window(Surface(size=(150, 150), waves=7))
     app.run()
