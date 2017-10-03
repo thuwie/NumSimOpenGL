@@ -1,7 +1,7 @@
 from vispy import app
 from vispy import gloo
 
-from render3.surface import Surface
+from surface import Surface
 
 vert = ("""
 attribute vec2 dot_position;
@@ -14,20 +14,23 @@ attribute float dot_height;
 
 frag = ("""
 void main(){
-    gl_FragColor = vec4(0, 0.4, 1, 1);
+    gl_FragColor = vec4(0, 0.7, 1, 1);
 }
 """)
 
 
 class Window(app.Canvas):
     def __init__(self, surface):
+        self.time = 0
         app.Canvas.__init__(self, size=(400, 400), title='Render suface')
         gloo.set_state(clear_color=(0, 0, 0, 1), depth_test=False, blend=False)
         self.program = gloo.Program(vert, frag)
 
         self.surface = surface
         self.program["dot_position"] = self.surface.position()
-        self.time = 0
+
+        self.segments = gloo.IndexBuffer(self.surface.wireframe())
+
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.activate_zoom()
         self.show()
@@ -39,7 +42,7 @@ class Window(app.Canvas):
     def on_draw(self, event):
         gloo.clear()
         self.program["dot_height"] = self.surface.height(self.time)
-        self.program.draw('points')
+        self.program.draw('lines', self.segments)
 
     def on_timer(self, event):
         self.time += 0.008
