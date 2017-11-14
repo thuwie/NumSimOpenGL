@@ -137,10 +137,14 @@ class Canvas(app.Canvas):
             print("Show reflected image of sun:", self.reflected_flag)
             self.apply_flags();
         elif event.key == '+':
-            self.program["u_eye_height"] += 0.5
-            print("Camera height: ", self.program["u_eye_height"])
+            if self.program["u_eye_height"] > 1:
+                self.program["u_eye_height"] -= 0.2
+                print("Camera height: ", self.program["u_eye_height"])
+            else:
+                print("Can't scroll closer")
+
         elif event.key == '-':
-            self.program["u_eye_height"] -= 0.5
+            self.program["u_eye_height"] += 0.2
             print("Camera height: ", self.program["u_eye_height"])
 
     def screen_to_gl_coordinates(self, pos):
