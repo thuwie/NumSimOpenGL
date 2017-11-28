@@ -1,4 +1,3 @@
-
 from vispy import gloo, app, io
 
 from surface import *
@@ -11,14 +10,13 @@ fragment_shader = fragment_shader_file.shader
 point_fragment_shader = point_fragment_shader_file.shader
 
 
-
 def normalize(vec):
     vec = np.asarray(vec, dtype=np.float32)
     return vec / np.sqrt(np.sum(vec * vec, axis=-1))[..., None]
 
 
 class Canvas(app.Canvas):
-    def __init__(self, surface, sky="textures/fluffy_clouds.png", bed="textures/sand.png"):
+    def __init__(self, surface, sky="textures/fluffy_clouds.png", bed="textures/seabed.png"):
         # store parameters
         self.surface = surface
         # read textures
@@ -36,13 +34,14 @@ class Canvas(app.Canvas):
         self.program['u_sky_texture'] = gloo.Texture2D(self.sky, wrapping='repeat', interpolation='linear')
         self.program['u_bed_texture'] = gloo.Texture2D(self.bed, wrapping='repeat', interpolation='linear')
         self.program_point['u_camera_height'] = self.program['u_camera_height'] = self.camera_height;
-        self.program_point["u_eye_height"] = self.program["u_eye_height"] = 5;
+        self.program_point["u_eye_height"] = self.program["u_eye_height"] = 1;
         self.program["u_alpha"] = 0.9;
-        self.program["u_bed_depth"] = 0.5;
+        self.program["u_bed_depth"] = 3;
         self.program["u_sun_direction"] = normalize([0, 1, 0.1]);
-        self.program["u_sun_diffused_color"] = [1, 1, 1];
-        self.program["u_sun_reflected_color"] = [1, 1, 1];
-        self.program["u_water_ambient_color"] = [0.1, 0.1, 0.1]
+        self.program["u_sun_diffused_color"] = [1, 0.8, 1];
+        self.program["u_sun_reflected_color"] = [1, 0.8, 0.6];
+        self.program["u_water_ambient_color"] = [0.10, 0.25, 0.25]
+        self.program["u_water_ambient_color_2"] = [0.1, 0.7, 0.7]
         self.triangles = gloo.IndexBuffer(self.surface.triangulation())
         # Set up GUI
         self.camera = np.array([0, 0, 1])
@@ -62,7 +61,7 @@ class Canvas(app.Canvas):
         self.show()
 
     def apply_flags(self):
-        self.program["u_diffused_mult"] = 0.5 if self.diffused_flag else 0;
+        self.program["u_diffused_mult"] = 1.0 if self.diffused_flag else 0;
         self.program["u_reflected_mult"] = 1.0 if self.reflected_flag else 0;
         self.program["u_bed_mult"] = 1 if self.bed_flag else 0;
         self.program["u_depth_mult"] = 1 if self.depth_flag else 0;
@@ -136,6 +135,8 @@ class Canvas(app.Canvas):
             self.reflected_flag = not self.reflected_flag;
             print("Show reflected image of sun:", self.reflected_flag)
             self.apply_flags();
+        elif event.key == 'p':
+            print("path" + self.program["v_position"]);
         elif event.key == '+':
             if self.program["u_eye_height"] > 1:
                 self.program["u_eye_height"] -= 0.2
@@ -166,7 +167,7 @@ class Canvas(app.Canvas):
 
 
 if __name__ == '__main__':
-    #surface = Surface(size=(100, 100), waves=5, max_height=0.2)
+    # surface = Surface(size=(100, 100), waves=5, max_height=0.2)
     surface = CircularWaves(size=(100, 100), max_height=0.05)
     c = Canvas(surface)
     c.measure_fps()
