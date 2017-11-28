@@ -2,7 +2,7 @@ import numpy as np
 
 
 class PlaneWaves(object):
-    def __init__(self, size=(100, 100), waves=5, max_height=0.2):
+    def __init__(self, size=(100, 100), waves=1, max_height=0.2):
         self._size = size
         self._wave_vector = 5 * (2 * np.random.rand(waves, 2) - 1)
         self._angular_frequency = 2 * np.random.rand(waves)

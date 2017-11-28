@@ -48,7 +48,7 @@ in  float alpha, in float c1, out vec3 reflected, out vec3 refracted) {
     return mix(u_water_ambient_color, color, mask);
 }
  vec3 water_depth_mix(vec3 color, vec3 position) {
-    float mask=exp(position.z*2);
+    float mask=1/exp(position.z*5);
     return mix(u_water_depth_color, color, mask);
 }
 
@@ -86,7 +86,7 @@ void main() {
      vec3 sky=u_sky_mult*sky_color;
     if(c>0.0) { // in the air
         sky+=sun_contribution(reflected, normal);
-         vec3 bed=water_decay( water_depth_mix(bed_color*u_bed_mult, v_position), path_in_water);
+         vec3 bed = water_depth_mix(water_decay(bed_color*u_bed_mult, path_in_water), v_position);
         rgb=mix(bed, sky, reflectance);
     } else { // under water
         sky+=sun_contribution(refracted, normal);

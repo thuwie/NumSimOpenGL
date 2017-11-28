@@ -36,12 +36,12 @@ class Canvas(app.Canvas):
         self.program_point['u_camera_height'] = self.program['u_camera_height'] = self.camera_height
         self.program_point["u_eye_height"] = self.program["u_eye_height"] = 1
         self.program["u_alpha"] = 0.9
-        self.program["u_bed_depth"] = 3
+        self.program["u_bed_depth"] = 0
         self.program["u_sun_direction"] = normalize([0, 1, 0.1])
         self.program["u_sun_diffused_color"] = [1, 0.8, 1]
         self.program["u_sun_reflected_color"] = [1, 0.8, 0.6]
-        self.program["u_water_ambient_color"] = [0.10, 0.25, 0.25]
-        self.program["u_water_depth_color"] = [0.1, 0.7, 0.7]
+        self.program["u_water_ambient_color"] = [0.9, 0.7, 0.7]
+        self.program["u_water_depth_color"] = [0, 0.1, 0.1]
         self.triangles = gloo.IndexBuffer(self.surface.triangulation())
         # Set up GUI
         self.camera = np.array([0, 0, 1])
@@ -168,7 +168,7 @@ class Canvas(app.Canvas):
 
 if __name__ == '__main__':
     # surface=Surface(size=(100,100), waves=5, max_height=0.2)
-    surface = CircularWaves(size=(100, 100), max_height=0.01)
+    surface = CircularWaves(size=(100, 100), max_height=0.1)
     c = Canvas(surface)
     c.measure_fps()
     app.run()
