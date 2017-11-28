@@ -6,7 +6,7 @@ uniform vec3 u_sun_direction;
 uniform vec3 u_sun_diffused_color;
 uniform vec3 u_sun_reflected_color;
 uniform vec3 u_water_ambient_color;
-uniform vec3 u_water_ambient_color_2;
+uniform vec3 u_water_depth_color;
 uniform float u_alpha;
 uniform float u_bed_depth;
 uniform float u_reflected_mult;
@@ -49,7 +49,7 @@ in  float alpha, in float c1, out vec3 reflected, out vec3 refracted) {
 }
  vec3 water_depth_mix(vec3 color, vec3 position) {
     float mask=exp(position.z*2);
-    return mix(u_water_ambient_color_2, color, mask);
+    return mix(u_water_depth_color, color, mask);
 }
 
 void main() {
