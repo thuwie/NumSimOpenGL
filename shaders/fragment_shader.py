@@ -6,6 +6,7 @@ uniform vec3 u_sun_direction;
 uniform vec3 u_sun_diffused_color;
 uniform vec3 u_sun_reflected_color;
 uniform vec3 u_water_ambient_color;
+uniform vec3 u_water_ambient_color_2;
 uniform float u_alpha;
 uniform float u_bed_depth;
 uniform float u_reflected_mult;
@@ -43,9 +44,14 @@ in  float alpha, in float c1, out vec3 reflected, out vec3 refracted) {
     return diffused_intensity*u_sun_diffused_color+reflected_intensity*u_sun_reflected_color;
 }
  vec3 water_decay(vec3 color, float distance) {
-    float mask=exp(-distance*u_depth_mult/4);
+    float mask=exp(-distance*u_depth_mult/2);
     return mix(u_water_ambient_color, color, mask);
 }
+ vec3 water_depth_mix(vec3 color, vec3 position) {
+    float mask=exp(position.z*2);
+    return mix(u_water_ambient_color_2, color, mask);
+}
+
 void main() {
     // normalize directions
      vec3 normal=normalize(v_normal);
@@ -80,13 +86,14 @@ void main() {
      vec3 sky=u_sky_mult*sky_color;
     if(c>0.0) { // in the air
         sky+=sun_contribution(reflected, normal);
-         vec3 bed=water_decay(bed_color*u_bed_mult, path_in_water);
+         vec3 bed=water_decay( water_depth_mix(bed_color*u_bed_mult, v_position), path_in_water);
         rgb=mix(bed, sky, reflectance);
     } else { // under water
         sky+=sun_contribution(refracted, normal);
-         vec3 bed=water_decay(bed_color*u_bed_mult, path_in_water);
+        vec3 bed=water_decay(bed_color*u_bed_mult, path_in_water);
         rgb=water_decay(mix(sky, bed, reflectance),distance_to_eye);
     };
+
     gl_FragColor.rgb = clamp(rgb,0.0,1.0);
     gl_FragColor.a = 1.0;
 }
