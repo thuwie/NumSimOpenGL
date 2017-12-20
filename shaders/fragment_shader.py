@@ -48,7 +48,7 @@ in  float alpha, in float c1, out vec3 reflected, out vec3 refracted) {
     return mix(u_water_ambient_color, color, mask);
 }
  vec3 water_depth_mix(vec3 color, vec3 position) {
-    float mask=1/exp(position.z*5);
+    float mask=1/exp(position.z*3);
     return mix(u_water_depth_color, color, mask);
 }
 
