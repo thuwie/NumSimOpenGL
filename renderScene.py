@@ -17,8 +17,8 @@ def normalize(vec):
 
 class Canvas(app.Canvas):
     def __init__(self, surface, sky="textures/fluffy_clouds.png", bed="textures/sand.png"):
-        # self.method = RungeKutta()
-        self.method = Euler()
+        self.method = RungeKutta()
+        # self.method = Euler()
 
         self.surface = surface
         self.sky = io.read_png(sky)

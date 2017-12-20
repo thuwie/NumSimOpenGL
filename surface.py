@@ -1,14 +1,16 @@
 import numpy as np
 
+
 class RungeKutta():
-    def __init__(self, size=(100, 100), nwave=2, max_height=0.2):
+    def __init__(self, size=(100, 100), nwave=10, max_height=0.2):
         self._size = size
         self._wave_vector = 5 * (2 * np.random.rand(nwave, 2) - 1)
         self._angular_frequency = 2 * np.random.rand(nwave)
         self._phase = 2 * np.pi * np.random.rand(nwave)
-        self._amplitude = max_height * (1 + np.random.rand(nwave)) / 4 / nwave
+        self._amplitude = max_height * (1 + np.random.rand(nwave)) / 2 / nwave
         self.t = 0
         self.speed = 1
+        self.step = 0.0202
         # self.h_before = self.height_old(0)
         self.p = self.init_height()
         self.h_before = self.p[0]
@@ -16,17 +18,21 @@ class RungeKutta():
         self.h_diff = self.p[1]
         # self.h_now = self.init_height2()
         # self.speed = 0
-        self.dt = 0.5
-        #self.dt = 1
+        self.dt = 0.0001
+        self.dt = 1
 
     def init_height(self):
         height = np.zeros(self._size, dtype=np.float32)
         v = np.zeros(self._size, dtype=np.float32)
         x = np.linspace(-1, 1, self._size[0])[:, None]
-        # height[:, :] = np.exp(-np.power(x - 1, 2) * 10)
         height[:, :] = (np.cos(2 * x * np.pi) * np.cos(2 * np.pi * self.speed * self.t)) / 10
-        # v[:, :] = (np.sin(2 * np.pi * self.speed * self.t)
         return height, v
+
+    def init_height2(self):
+        height = np.zeros(self._size, dtype=np.float32)
+        x = np.linspace(-1, 1, self._size[0])[:, None]
+        height[:, :] = np.sin(x)
+        return height
 
     def position(self):
         xy = np.empty(self._size + (2,), dtype=np.float32)
@@ -38,14 +44,13 @@ class RungeKutta():
         self.t += dt
 
     def height_nowie(self):
+        height_now = self.h_now  # cкопирует укзатель
 
-        height_now = self.h_now
-        print('HEIGHT: {0}', np.sum(height_now))
-        height_before = self.h_before
-        height_future = np.zeros(self._size, dtype=np.float32)
         delta = (height_now[2:, 1:-1] + height_now[:-2, 1:-1] + height_now[1:-1, :-2] + height_now[1:-1, 2:]) - 4 * height_now[1:-1, 1:-1]
-
         coe = self.speed ** 2 / 2
+
+        energy = (np.power(self.h_now, 2) * self.step * self.step) + (np.power(self.h_now, 2) * self.step) + (np.power(self.h_now, 2) * self.step)
+        print('Energy = ', np.sum(energy))
 
         k1_first = self.h_diff
         k1_second = np.zeros(self._size, dtype=np.float32)
@@ -90,6 +95,7 @@ class RungeKutta():
 
         self.h_now = P_first
         self.h_diff = P_second
+
         return self.h_now
 
     def height(self):
@@ -174,6 +180,7 @@ class Euler:
         self._amplitude = max_height * (1 + np.random.rand(nwave)) / 2 / nwave
         self.t = 0
         self.speed = 1
+        self.step = 0.0202
         # self.h_before = self.height_old(0)
         self.p = self.init_height()
         self.h_before = self.p[0]
@@ -188,10 +195,7 @@ class Euler:
         height = np.zeros(self._size, dtype=np.float32)
         v = np.zeros(self._size, dtype=np.float32)
         x = np.linspace(-1, 1, self._size[0])[:, None]
-        # height[:, :] = np.exp(-np.power(x - 1, 2) * 10)
         height[:, :] = (np.cos(2 * x * np.pi) * np.cos(2 * np.pi * self.speed * self.t)) / 10
-
-        # v[:, :] = (np.sin(2 * x * np.pi) * np.cos(2 * np.pi * self.speed * self.t) + np.cos(2 * x * np.pi) * np.sin(2 * np.pi * self.speed * self.t)) / 10
         return height, v
 
     def init_height2(self):
@@ -210,17 +214,18 @@ class Euler:
         self.t += dt
 
     def height_nowie(self):
-        # print('HEIGHT: {0}', np.sum(self.h_now))
-        height_now = self.h_now  # cкопирует укзатель
+        height_now = self.h_now
         height_before = self.h_before
-
-        # print('HEIGHT: {1}', np.sum(height_now))
         height_future = np.zeros(self._size, dtype=np.float32)
-        delta = (height_now[2:, 1:-1] + height_now[:-2, 1:-1] + height_now[1:-1, :-2] + height_now[1:-1,
-                                                                                        2:]) - 4 * height_now[1:-1,
-                                                                                                   1:-1]
-        print('HEIGHT | ', np.sum(h_diff))
+
+        delta = (height_now[2:, 1:-1] + height_now[:-2, 1:-1] + height_now[1:-1, :-2] + height_now[1:-1, 2:]) - 4 * height_now[1:-1, 1:-1]
+
         coe = self.speed ** 2 / 2
+
+        energy = (np.power(self.h_now, 2) * self.step * self.step) + (np.power(self.h_now, 2) * self.step) + (
+        np.power(self.h_now, 2) * self.step)
+        print('Energy = ', np.sum(energy))
+
         P_tilda_second = np.zeros(self._size, dtype=np.float32)
 
         P_tilda_first = height_now + self.dt * self.h_diff
@@ -230,12 +235,7 @@ class Euler:
         P_eler_second = np.zeros(self._size, dtype=np.float32)
 
         P_eler_first = height_now + (coe / 2) * (self.h_diff + P_tilda_second)
-        P_eler_second[1: -1, 1: -1] = self.h_diff[1: -1, 1: -1] + (coe / 2) * (
-            coe * delta + coe * ((P_tilda_first[2:, 1:-1] +
-                                  P_tilda_first[:-2, 1:-1] +
-                                  P_tilda_first[1:-1, :-2] +
-                                  P_tilda_first[1:-1, 2:]) -
-                                 4 * P_tilda_first[1:-1, 1:-1]))
+        P_eler_second[1: -1, 1: -1] = self.h_diff[1: -1, 1: -1] + (coe / 2) * (coe * delta + coe * ((P_tilda_first[2:, 1:-1] + P_tilda_first[:-2, 1:-1] + P_tilda_first[1:-1, :-2] + P_tilda_first[1:-1, 2:]) - 4 * P_tilda_first[1:-1, 1:-1]))
 
         P_eler_first[0, :] = P_eler_first[1, :]
         P_eler_first[self._size[0] - 1, :] = P_eler_first[self._size[0] - 2, :]
