@@ -1,10 +1,13 @@
 shader = ("""
+
 uniform float u_eye_height;
 uniform mat4 u_world_view;
+
 attribute vec2 a_position;
 attribute float a_height;
 attribute float u_camera_height;
 attribute vec2 a_normal;
+
 varying vec3 v_normal;
 varying vec3 v_position;
 varying vec3 v_from_eye;

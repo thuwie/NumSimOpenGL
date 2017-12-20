@@ -16,18 +16,20 @@ def normalize(vec):
 
 
 class Canvas(app.Canvas):
-    def __init__(self, surface, sky="textures/fluffy_clouds.png", bed="textures/seabed.png"):
-        # store parameters
+    def __init__(self, surface, sky="textures/fluffy_clouds.png", bed="textures/sand.png"):
+        # self.method = RungeKutta()
+        self.method = Euler()
+
         self.surface = surface
-        # read textures
         self.sky = io.read_png(sky)
         self.bed = io.read_png(bed)
-        # create GL context
         app.Canvas.__init__(self, size=(400, 400), title="water")
-        # Compile shaders and set constants
+
         self.program = gloo.Program(vertex_shader, fragment_shader)
         self.program_point = gloo.Program(vertex_shader, point_fragment_shader)
+
         pos = self.surface.position()
+
         self.camera_height = 1.0
         self.program["a_position"] = pos
         self.program_point["a_position"] = pos
@@ -36,36 +38,41 @@ class Canvas(app.Canvas):
         self.program_point['u_camera_height'] = self.program['u_camera_height'] = self.camera_height
         self.program_point["u_eye_height"] = self.program["u_eye_height"] = 1
         self.program["u_alpha"] = 0.9
-        self.program["u_bed_depth"] = 3
+        self.program["u_bed_depth"] = 2
         self.program["u_sun_direction"] = normalize([0, 1, 0.1])
         self.program["u_sun_diffused_color"] = [1, 0.8, 1]
         self.program["u_sun_reflected_color"] = [1, 0.8, 0.6]
-        self.program["u_water_ambient_color"] = [0.10, 0.25, 0.25]
-        self.program["u_water_depth_color"] = [0.1, 0.7, 0.7]
+        self.program["u_water_ambient_color"] = [0.1, 0.2, 0.2]
+        self.program["u_water_depth_color"] = [0, 0.1, 0.1]
         self.triangles = gloo.IndexBuffer(self.surface.triangulation())
-        # Set up GUI
+
+        self.h_description = None
+
+
         self.camera = np.array([0, 0, 1])
         self.up = np.array([0, 1, 0])
         self.set_camera()
         self.are_points_visible = False
         self.drag_start = None
-        self.diffused_flag = True;
-        self.reflected_flag = True;
-        self.bed_flag = True;
-        self.depth_flag = True;
-        self.sky_flag = True;
-        self.apply_flags();
-        # Run everything
+        self.diffused_flag = True
+        self.reflected_flag = True
+        self.bed_flag = True
+        self.stop_flag = False
+        self.depth_flag = True
+        self.sky_flag = True
+        self.apply_flags()
+
+
         self._timer = app.Timer('auto', connect=self.on_timer, start=True)
         self.activate_zoom()
         self.show()
 
     def apply_flags(self):
-        self.program["u_diffused_mult"] = 1.0 if self.diffused_flag else 0;
-        self.program["u_reflected_mult"] = 1.0 if self.reflected_flag else 0;
-        self.program["u_bed_mult"] = 1 if self.bed_flag else 0;
-        self.program["u_depth_mult"] = 1 if self.depth_flag else 0;
-        self.program["u_sky_mult"] = 1 if self.sky_flag else 0;
+        self.program["u_diffused_mult"] = 1.0 if self.diffused_flag else 0
+        self.program["u_reflected_mult"] = 1.0 if self.reflected_flag else 0
+        self.program["u_bed_mult"] = 1 if self.bed_flag else 0
+        self.program["u_depth_mult"] = 1 if self.depth_flag else 0
+        self.program["u_sky_mult"] = 1 if self.sky_flag else 0
 
     def set_camera(self):
         rotation = np.zeros((4, 4), dtype=np.float32)
@@ -92,13 +99,18 @@ class Canvas(app.Canvas):
     def on_draw(self, event):
         gloo.set_state(clear_color=(0, 0, 0, 1), blend=False)
         gloo.clear()
-        h, grad = self.surface.height_and_normal()
+        h = surface.height_nowie()
+        grad = surface.normal(h, 0.02)
         self.program["a_height"] = h
         self.program["a_normal"] = grad
+
+        # draw triangles
         gloo.set_state(depth_test=True)
         self.program.draw('triangles', self.triangles)
+
+        # draw points
         if self.are_points_visible:
-            self.program_point["a_height"] = h
+            self.program_point['a_height'] = h
             gloo.set_state(depth_test=False)
             self.program_point.draw('points')
 
@@ -168,7 +180,8 @@ class Canvas(app.Canvas):
 
 if __name__ == '__main__':
     # surface=Surface(size=(100,100), waves=5, max_height=0.2)
-    surface = CircularWaves(size=(100, 100), max_height=0.01)
+    surface = Euler(size=(100, 100), max_height=0.02)
+    # surface = RungeKutta(size=(100, 100), max_height=0.02)
     c = Canvas(surface)
     c.measure_fps()
     app.run()
