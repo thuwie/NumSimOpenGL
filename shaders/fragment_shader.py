@@ -1,5 +1,4 @@
 shader = ("""
-#version 130
 uniform sampler2D u_sky_texture;
 uniform sampler2D u_bed_texture;
 uniform vec3 u_sun_direction;
